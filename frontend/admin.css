@@ -266,3 +266,4 @@ svg.icon {
   border: 1px solid var(--border); border-radius: var(--radius-sm); text-decoration: none; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 800; transition: all 0.3s;
 }
 .btn-view:hover { background: var(--cyan); color: #fff; box-shadow: 0 0 18px var(--cyan-glow); border-color: var(--cyan); }
+
