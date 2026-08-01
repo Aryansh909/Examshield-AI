@@ -136,3 +136,4 @@ class TestFlaskAPI:
             content_type="application/json",
         )
         assert resp.status_code == 401
+
