@@ -70,3 +70,4 @@ class TestFlaskConfig:
     def test_camera_index_is_int(self):
         assert isinstance(config.CAMERA_INDEX, int)
         assert config.CAMERA_INDEX >= 0
+
