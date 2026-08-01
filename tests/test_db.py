@@ -109,3 +109,4 @@ class TestDatabase:
         rows = conn.execute("SELECT * FROM events WHERE session_id='sess-multi'").fetchall()
         conn.close()
         assert len(rows) == 3
+
