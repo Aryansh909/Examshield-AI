@@ -360,3 +360,4 @@ svg.icon {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
 }
 .btn-export:hover { background: var(--cyan); color: #fff; box-shadow: 0 0 18px var(--cyan-glow); transform: translateY(-1px); }
+
