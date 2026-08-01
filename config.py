@@ -87,3 +87,4 @@ HEAD_VIOLATION_CONSECUTIVE = 3
 
 # Camera index (0 = default webcam, override via env for multi-camera setups)
 CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", "0"))
+
