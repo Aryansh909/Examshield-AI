@@ -89,3 +89,4 @@ Each signal goes through three layers of filtering before incrementing its viola
 1. **Debounce**: Condition must persist continuously for `DEBOUNCE_DURATION` seconds
 2. **Hysteresis**: Condition must be clear for `CLEAR_DURATION` seconds before resetting
 3. **Cooldown**: Same event type is not logged more than once per `EVENT_COOLDOWN` seconds
+
