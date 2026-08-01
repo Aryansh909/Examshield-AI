@@ -152,3 +152,4 @@ def get_session_by_id(session_id: str):
 
 # Auto-init on import
 init_db()
+
