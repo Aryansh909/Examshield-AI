@@ -92,3 +92,4 @@ MediaPipe blendshape readings are inherently noisy (per-frame). All three postur
 | Head direction | 9 frames | ~1 second |
 | Gaze direction | 9 frames | ~1 second |
 | Mouth state | 7 frames | ~0.8 seconds |
+
