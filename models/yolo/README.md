@@ -24,3 +24,4 @@ mv yolov8n.pt models/yolo/
 ```
 
 > **Note**: If `yolov8n-face.pt` is absent, ExamShield falls back to MediaPipe for face counting.
+
