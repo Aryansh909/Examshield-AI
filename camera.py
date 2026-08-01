@@ -1180,3 +1180,4 @@ class Camera:
             except Exception:
                 pass
         print("[OK] Camera stopped, session saved")
+
