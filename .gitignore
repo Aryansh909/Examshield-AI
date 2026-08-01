@@ -62,3 +62,6 @@ htmlcov/
 
 # OS artifacts
 *.DS_Store
+
+# Personal screenshots / assets
+docs/assets/

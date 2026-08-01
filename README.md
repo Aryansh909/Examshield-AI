@@ -40,20 +40,6 @@
 
 ---
 
-## Screenshots
-
-<p align="center">
-  <img src="docs/assets/dashboard.png" alt="ExamShield AI — Candidate Monitoring Dashboard" width="100%">
-  <em>Candidate Monitoring Dashboard — live face mesh, threat score, violation metrics, Cyberpunk Neon theme</em>
-</p>
-
-<p align="center">
-  <img src="docs/assets/admin.png" alt="ExamShield AI — Admin Login" width="60%">
-  <em>Admin Authentication Gateway</em>
-</p>
-
----
-
 ## Overview
 
 **ExamShield AI** is a real-time, computer vision–based examination proctoring system designed to detect suspicious behaviour during online assessments. It combines **YOLOv8 object detection**, **MediaPipe facial geometry**, **face recognition**, and a **probabilistic scoring engine** to generate a live suspicion score — all running locally on a standard webcam without cloud dependency.
