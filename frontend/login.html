@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ExamShield AI — System Auth</title>
+  <link rel="stylesheet" href="/static/admin.css" />
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    .login-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 3rem 2.5rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: var(--shadow);
+      position: relative;
+      z-index: 10;
+      animation: enter-card 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      transition: background 0.4s, border-color 0.4s;
+    }
+    .login-container::before, .login-container::after {
+      content: ""; position: absolute; width: 16px; height: 16px; border: 2px solid var(--cyan); pointer-events: none; opacity: 0.85; transition: border-color 0.4s;
+    }
+    .login-container::before { top: 0; left: 0; border-right: none; border-bottom: none; border-top-left-radius: var(--radius); }
+    .login-container::after { bottom: 0; right: 0; border-left: none; border-top: none; border-bottom-right-radius: var(--radius); }
+    
+    @keyframes enter-card {
+      from { transform: translateY(24px); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+    
+    .brand {
+      display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+      font-family: var(--font-mono); font-size: 1.6rem; font-weight: 800;
+      color: var(--text-cyan); letter-spacing: 0.15em; margin-bottom: 0.4rem;
+    }
+    .brand em { color: var(--cyan); font-style: normal; }
+    
+    .subtitle {
+      font-family: var(--font-mono); font-size: 0.8rem; color: var(--cyan);
+      font-weight: 700; margin-bottom: 2.2rem; letter-spacing: 0.2em;
+      text-transform: uppercase; text-align: center;
+    }
+    
+    .input-group { text-align: left; margin-bottom: 1.4rem; }
+    .input-group label {
+      display: block; font-family: var(--font-mono); font-size: 0.75rem;
+      font-weight: 700; color: var(--text-dim); text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 0.5rem;
+    }
+    .input-group input {
+      width: 100%; padding: 0.85rem 1rem; background: var(--surface-2);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      color: var(--text-cyan); font-size: 1rem; font-family: var(--font-mono);
+      transition: all 0.3s;
+    }
+    .input-group input:focus {
+      outline: none; border-color: var(--cyan); box-shadow: 0 0 16px var(--cyan-glow);
+      background: rgba(0, 240, 255, 0.04);
+    }
+    
+    .btn-login {
+      width: 100%; padding: 0.9rem; background: var(--cyan); color: #fff;
+      border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius-sm);
+      font-size: 0.9rem; font-weight: 800; cursor: pointer; font-family: var(--font-mono);
+      letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.3s; margin-top: 0.8rem;
+    }
+    .btn-login:hover { filter: brightness(1.1); box-shadow: 0 0 20px var(--cyan-glow); transform: translateY(-1px); }
+    
+    .error-msg {
+      color: var(--red-hi); background: var(--red-glow); border: 1px dashed var(--red-hi);
+      padding: 0.75rem; border-radius: var(--radius-sm); font-family: var(--font-mono);
+      font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; text-align: center;
+      margin-bottom: 1.5rem; display: none; box-shadow: 0 0 15px var(--red-glow);
+      animation: shake 0.4s ease-in-out;
+    }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+    .theme-toggle-wrap { position: absolute; top: 1.5rem; right: 1.5rem; z-index: 20; }
+  </style>
+</head>
+<body class="theme-cyberpunk">
+
+  <!-- Dynamic Ambient Background Orbs -->
+  <div class="ambient-container">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+  </div>
+
+  <div class="theme-toggle-wrap">
+    <div class="theme-selector-wrap">
+      <svg class="icon" style="width:1.05rem; height:1.05rem;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>
+      <select id="theme-select" class="theme-select" onchange="setTheme(this.value)" title="Select Design Theme">
+        <option value="cyberpunk">CYBERPUNK_NEON</option>
+        <option value="emerald">EMERALD_MATRIX</option>
+        <option value="solar">SOLAR_CYBER</option>
+        <option value="light">STUDIO_LIGHT</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="login-container">
+    <div class="brand">
+      <svg style="width:1.8rem; height:1.8rem; stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; color:var(--cyan);" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      <span>EXAMSHIELD_<em>AI</em></span>
+    </div>
+    <div class="subtitle">SYS_AUTH_GATEWAY</div>
+    
+    <div class="error-msg" id="error-msg">[ ERROR: INVALID_CREDENTIALS ]</div>
+
+    <form id="login-form">
+      <div class="input-group">
+        <label for="username">ACCESS_ID</label>
+        <input type="text" id="username" name="username" required autocomplete="username" placeholder="admin" />
+      </div>
+      <div class="input-group">
+        <label for="password">SEC_KEY</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="••••••••" />
+      </div>
+      <button type="submit" class="btn-login">INITIATE_HANDSHAKE</button>
+    </form>
+  </div>
+
+  <script>
+    const htmlBody = document.body;
+    const themeSelect = document.getElementById('theme-select');
+
+    function setTheme(themeName) {
+      htmlBody.className = 'theme-' + themeName;
+      localStorage.setItem('theme', themeName);
+      if (themeSelect) themeSelect.value = themeName;
+    }
+
+    const savedTheme = localStorage.getItem('theme') || 'cyberpunk';
+    setTheme(savedTheme);
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const u = document.getElementById('username').value;
+      const p = document.getElementById('password').value;
+      const err = document.getElementById('error-msg');
+      err.style.display = 'none';
+
+      try {
+        const res = await fetch('/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        const data = await res.json();
+        
+        if (res.ok && (data.status === 'ok' || data.success)) {
+          window.location.href = '/admin';
+        } else {
+          err.textContent = `[ ERROR: ${data.message ? data.message.toUpperCase() : 'AUTH_FAILED'} ]`;
+          err.style.display = 'block';
+        }
+      } catch (error) {
+        err.textContent = '[ ERROR: SERVER_UNREACHABLE ]';
+        err.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

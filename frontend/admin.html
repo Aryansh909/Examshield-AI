@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ExamShield AI — Admin Dashboard</title>
+  <link rel="stylesheet" href="/static/admin.css" />
+</head>
+<body class="theme-cyberpunk">
+
+<!-- Dynamic Ambient Background Orbs -->
+<div class="ambient-container">
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+</div>
+
+<header class="admin-header">
+  <div class="brand">
+    <svg class="icon" style="width:1.4rem; height:1.4rem; color:var(--cyan);" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+    <span class="brand-name">EXAMSHIELD_<em>AI</em></span>
+    <span class="badge-admin">SYS_ADMIN</span>
+  </div>
+  <div class="header-meta">
+    <div class="theme-selector-wrap">
+      <svg class="icon" style="width:1.05rem; height:1.05rem;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>
+      <select id="theme-select" class="theme-select" onchange="setTheme(this.value)" title="Select Design Theme">
+        <option value="cyberpunk">CYBERPUNK_NEON</option>
+        <option value="emerald">EMERALD_MATRIX</option>
+        <option value="solar">SOLAR_CYBER</option>
+        <option value="light">STUDIO_LIGHT</option>
+      </select>
+    </div>
+    <span class="admin-clock" id="admin-clock">00:00:00</span>
+    <a href="/" class="back-link">
+      <svg class="icon" style="width:0.95rem; height:0.95rem;" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      RTRN_MONITOR
+    </a>
+    <a href="/admin/logout" class="logout-link">TERM_SESSION</a>
+  </div>
+</header>
+
+<div class="admin-toolbar">
+  <div class="toolbar-stats">
+    <div class="ts-item">
+      <span class="ts-label">ACTIVE_NODES</span>
+      <span class="ts-value">1</span>
+    </div>
+    <div class="ts-item">
+      <span class="ts-label">CRIT_ALERTS</span>
+      <span class="ts-value stat-high" id="alert-count">0</span>
+    </div>
+    <div class="ts-item">
+      <span class="ts-label">SYS_STATUS</span>
+      <span class="ts-value stat-low">ONL</span>
+    </div>
+  </div>
+  <div class="toolbar-actions">
+    <a href="/export" class="btn-sm">[ EXPORT_MASTER_LOG ]</a>
+    <button class="btn-sm" onclick="location.reload()">[ SYNC_DATA ]</button>
+  </div>
+</div>
+
+<div class="section-wrap">
+  <h2 class="section-title">
+    <svg class="icon" style="color:var(--cyan);" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    MONITORED_CANDIDATES
+  </h2>
+  
+  <div class="candidate-grid">
+    <div class="student-card" id="student-card-1">
+      <div class="card-header">
+        <div class="student-info">
+          <div class="student-avatar">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <div class="student-details">
+            <span class="student-name">CANDIDATE_001</span>
+            <span class="student-id">ID: 9982-AX</span>
+          </div>
+        </div>
+        <span class="card-risk-badge low" id="card-risk-badge">NOMINAL</span>
+      </div>
+      
+      <div class="card-metrics">
+        <div class="metric-col">
+          <span class="metric-label">THREAT_LVL</span>
+          <span class="metric-val" id="card-score">0.0</span>
+        </div>
+        <div class="metric-col">
+          <span class="metric-label">VIOLATIONS</span>
+          <span class="metric-val" id="card-violations">0</span>
+        </div>
+      </div>
+      
+      <div class="card-live-state" id="card-tags">
+        <span class="tag">SENSOR_SYS_ON</span>
+      </div>
+      
+      <div class="card-footer">
+        <a href="/" class="btn-view">OPEN_LIVE_FEED</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Theme Management Engine
+const htmlBody = document.body;
+const themeSelect = document.getElementById('theme-select');
+
+function setTheme(themeName) {
+  htmlBody.className = 'theme-' + themeName;
+  localStorage.setItem('theme', themeName);
+  if (themeSelect) themeSelect.value = themeName;
+}
+
+const savedTheme = localStorage.getItem('theme') || 'cyberpunk';
+setTheme(savedTheme);
+
+// Admin clock
+setInterval(() => {
+  const d = new Date();
+  document.getElementById('admin-clock').textContent = 
+    String(d.getHours()).padStart(2,'0') + ':' + 
+    String(d.getMinutes()).padStart(2,'0') + ':' + 
+    String(d.getSeconds()).padStart(2,'0');
+}, 1000);
+
+// Fetch summary for the grid
+async function fetchSummary() {
+  try {
+    const res = await fetch('/status');
+    const data = await res.json();
+    
+    document.getElementById('card-score').textContent = data.suspicion_score.toFixed(1);
+    
+    let totalViolations = 0;
+    if (data.violations) {
+      totalViolations = 
+        data.violations.phone_detected + 
+        data.violations.multiple_faces + 
+        data.violations.head_turned + 
+        data.violations.gaze_off_screen + 
+        data.violations.mouth_open + 
+        data.violations.identity_mismatch;
+    }
+      
+    document.getElementById('card-violations').textContent = totalViolations;
+    
+    const card = document.getElementById('student-card-1');
+    const badge = document.getElementById('card-risk-badge');
+    
+    card.classList.remove('high-risk', 'med-risk');
+    badge.className = 'card-risk-badge';
+    
+    let isHighRisk = false;
+    if(data.suspicion_score > 75) {
+      card.classList.add('high-risk');
+      badge.classList.add('high');
+      badge.textContent = 'HIGH_RISK';
+      isHighRisk = true;
+    } else if(data.suspicion_score > 35) {
+      card.classList.add('med-risk');
+      badge.classList.add('medium');
+      badge.textContent = 'ELEVATED';
+    } else {
+      badge.classList.add('low');
+      badge.textContent = 'NOMINAL';
+    }
+    
+    document.getElementById('alert-count').textContent = isHighRisk ? '1' : '0';
+    
+    // Live Tags
+    const tagsDiv = document.getElementById('card-tags');
+    tagsDiv.innerHTML = '';
+    const addTag = (text, alert) => {
+      const sp = document.createElement('span');
+      sp.className = 'tag' + (alert ? ' alert' : '');
+      sp.textContent = text;
+      tagsDiv.appendChild(sp);
+    };
+    
+    if(data.phone_detected) addTag('DEVICE_DET', true);
+    if(data.identity_mismatch) addTag('ID_MISMATCH', true);
+    if(data.face_count > 1) addTag('MULTI_FACE', true);
+    if(data.face_count === 0) addTag('NO_FACE', true);
+    if(data.head_direction !== 'forward') addTag('HEAD:'+data.head_direction.toUpperCase(), false);
+    if(tagsDiv.innerHTML === '') addTag('SYS_CLEAR', false);
+    
+  } catch(e) { console.error('Error fetching admin summary:', e); }
+}
+
+setInterval(fetchSummary, 2000);
+fetchSummary();
+</script>
+
+</body>
+</html>

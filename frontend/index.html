@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ExamShield AI — Candidate Monitor HUD</title>
+  <meta name="description" content="Advanced AI-powered exam proctoring HUD." />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="theme-cyberpunk">
+
+<!-- Dynamic Ambient Background Orbs -->
+<div class="ambient-container">
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+</div>
+
+<header class="topbar" role="banner">
+  <div class="topbar-brand">
+    <svg class="icon" style="width:1.4rem; height:1.4rem; color:var(--cyan);" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+    <span>EXAMSHIELD_<em>AI</em></span>
+  </div>
+  <div class="topbar-meta">
+    <div class="theme-selector-wrap">
+      <svg class="icon" style="width:1.05rem; height:1.05rem;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>
+      <select id="theme-select" class="theme-select" onchange="setTheme(this.value)" title="Select Design Theme">
+        <option value="cyberpunk">CYBERPUNK_NEON</option>
+        <option value="emerald">EMERALD_MATRIX</option>
+        <option value="solar">SOLAR_CYBER</option>
+        <option value="light">STUDIO_LIGHT</option>
+      </select>
+    </div>
+    <span class="session-label">SYS_UPTIME</span>
+    <span id="session-time">00:00</span>
+    <span id="fps-display" class="fps-badge">-- FPS</span>
+    <a href="/admin" class="admin-link">
+      <svg class="icon" style="width:1rem; height:1rem;" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      SYS_ADMIN_CTRL
+    </a>
+  </div>
+</header>
+
+<div id="alert-banner" class="alert-banner hidden" role="alert">
+  <svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+  CRITICAL: HIGH RISK DETECTED — SUPERVISOR INTERVENTION REQUIRED
+</div>
+
+<main class="grid-main" role="main">
+
+  <!-- Left: Suspicion Score & Stats -->
+  <section class="panel">
+    <div class="panel-title">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+      THREAT_LEVEL
+    </div>
+    <div class="risk-badge-wrap">
+      <span id="risk-badge" class="risk-badge low">LOW</span>
+      <span id="behaviour-state" class="behaviour-label">SYS_NORMAL</span>
+    </div>
+    <div class="score-number" id="score-number">0.0</div>
+    <div class="chart-wrap">
+      <canvas id="score-chart"></canvas>
+    </div>
+    
+    <div class="panel-title" style="margin-top:0.5rem">
+      <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+      BEHAVIORAL_RADAR
+    </div>
+    <div class="radar-wrap">
+      <canvas id="radar-chart"></canvas>
+    </div>
+
+    <div class="panel-title" style="margin-top:0.5rem">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      SENSOR_STATUS
+    </div>
+    <div class="indicator-grid">
+      <span class="indicator" id="ind-phone">PHONE: CLR</span>
+      <span class="indicator" id="ind-gaze">GAZE: CLR</span>
+      <span class="indicator" id="ind-head">HEAD: CLR</span>
+      <span class="indicator" id="ind-mouth">AUDIO: CLR</span>
+      <span class="indicator" id="ind-hand">HAND: CLR</span>
+      <span class="indicator" id="ind-identity">IDENT: OK</span>
+    </div>
+  </section>
+
+  <!-- Center: Video Feed & Biometrics -->
+  <section class="panel panel-video">
+    <div class="panel-title">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+      OPTICAL_FEED
+    </div>
+    <div class="video-wrap">
+      <img id="video-feed" src="/video" alt="Live camera feed" />
+      
+      <!-- Tech HUD Overlay -->
+      <div class="hud-overlay">
+        <div class="hud-bracket hud-tl"></div>
+        <div class="hud-bracket hud-tr"></div>
+        <div class="hud-bracket hud-bl"></div>
+        <div class="hud-bracket hud-br"></div>
+        <div class="hud-rec">REC</div>
+        <div class="hud-timecode" id="hud-timecode">00:00:00:00</div>
+        <div class="hud-crosshair"></div>
+      </div>
+      
+      <div class="video-overlay-risk" id="video-overlay"></div>
+    </div>
+    <div class="enrollment-status" id="enroll-status">[ ENROLLING IDENTITY DATA... ]</div>
+    
+    <!-- Enrolled Biometrics Profile Card -->
+    <div id="biometric-card" class="biometric-card hidden">
+      <div class="bio-header">SYS_AUTH: BIOMETRIC_MATCH_LOCKED</div>
+      <div class="bio-body">
+        <div class="bio-avatar-wrap">
+          <img id="enrolled-photo" src="/static/enrolled_face.jpg" alt="Enrolled Face" />
+        </div>
+        <div class="bio-info">
+          <div class="bio-name">CANDIDATE_001</div>
+          <div class="bio-desc">REFERENCE_ID_MATRIX</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Right: Violations + Timeline -->
+  <section class="panel">
+    <div class="panel-title">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+      VIOLATION_METRICS
+    </div>
+    <div class="violation-grid">
+      <div class="v-card" id="vc-phone">
+        <div class="v-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></div>
+        <div class="v-label">DEVICE</div>
+        <div class="v-count" id="cnt-phone">0</div>
+      </div>
+      <div class="v-card" id="vc-face">
+        <div class="v-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+        <div class="v-label">MULTI_FACE</div>
+        <div class="v-count" id="cnt-face">0</div>
+      </div>
+      <div class="v-card" id="vc-head">
+        <div class="v-icon"><svg class="icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></div>
+        <div class="v-label">HEAD_TURN</div>
+        <div class="v-count" id="cnt-head">0</div>
+      </div>
+      <div class="v-card" id="vc-gaze">
+        <div class="v-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></div>
+        <div class="v-label">GAZE_DEV</div>
+        <div class="v-count" id="cnt-gaze">0</div>
+      </div>
+      <div class="v-card" id="vc-mouth">
+        <div class="v-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M2 12a10 10 0 1 0 20 0 10 10 0 1 0-20 0"></path><path d="M8 12s1.5 2 4 2 4-2 4-2"></path></svg></div>
+        <div class="v-label">AUDIO_ACT</div>
+        <div class="v-count" id="cnt-mouth">0</div>
+      </div>
+      <div class="v-card" id="vc-id">
+        <div class="v-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+        <div class="v-label">IDENT_ERR</div>
+        <div class="v-count" id="cnt-id">0</div>
+      </div>
+    </div>
+    
+    <div class="panel-title" style="margin-top:0.75rem">
+      <svg class="icon" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+      SYS_CONSOLE
+    </div>
+    <ul class="event-timeline" id="event-timeline"></ul>
+    
+    <div class="export-row">
+      <button id="reset-btn" class="btn-export" onclick="resetSession()">[ RESET ]</button>
+      <a href="/export" class="btn-export" download>[ EXPORT LOG ]</a>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// Theme Management Engine
+const htmlBody = document.body;
+const themeSelect = document.getElementById('theme-select');
+
+function setTheme(themeName) {
+  htmlBody.className = 'theme-' + themeName;
+  localStorage.setItem('theme', themeName);
+  if (themeSelect) themeSelect.value = themeName;
+  updateChartColors();
+}
+
+const savedTheme = localStorage.getItem('theme') || 'cyberpunk';
+setTheme(savedTheme);
+
+function getThemeColors() {
+  const isLight = htmlBody.classList.contains('theme-light');
+  const isEmerald = htmlBody.classList.contains('theme-emerald');
+  const isSolar = htmlBody.classList.contains('theme-solar');
+  
+  if (isLight) {
+    return { primary: '#4f46e5', primaryBg: 'rgba(79, 70, 229, 0.12)', grid: 'rgba(79, 70, 229, 0.15)', text: '#3730a3' };
+  } else if (isEmerald) {
+    return { primary: '#34d399', primaryBg: 'rgba(52, 211, 153, 0.15)', grid: 'rgba(52, 211, 153, 0.15)', text: '#a7f3d0' };
+  } else if (isSolar) {
+    return { primary: '#fb923c', primaryBg: 'rgba(251, 146, 60, 0.15)', grid: 'rgba(251, 146, 60, 0.15)', text: '#ffedd5' };
+  } else {
+    return { primary: '#00f0ff', primaryBg: 'rgba(0, 240, 255, 0.12)', grid: 'rgba(0, 240, 255, 0.15)', text: '#a5f3fc' };
+  }
+}
+
+// Time formatting for Session
+let sessionSeconds = 0;
+setInterval(() => {
+  sessionSeconds++;
+  document.getElementById('session-time').textContent =
+    String(Math.floor(sessionSeconds/60)).padStart(2,'0') + ':' + String(sessionSeconds%60).padStart(2,'0');
+}, 1000);
+
+// HUD Timecode
+setInterval(() => {
+  const now = new Date();
+  document.getElementById('hud-timecode').textContent = 
+    String(now.getHours()).padStart(2,'0') + ':' + 
+    String(now.getMinutes()).padStart(2,'0') + ':' + 
+    String(now.getSeconds()).padStart(2,'0') + ':' + 
+    String(Math.floor(now.getMilliseconds()/10)).padStart(2,'0');
+}, 50);
+
+// Chart Init
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+
+const ctx = document.getElementById('score-chart').getContext('2d');
+let colors = getThemeColors();
+
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: { labels: [], datasets: [{ label: 'THREAT', data: [], borderColor: colors.primary, backgroundColor: colors.primaryBg, borderWidth: 2, pointRadius: 0, tension: 0.4, fill: true }] },
+  options: { responsive: true, maintainAspectRatio: false, animation: false,
+    scales: { x: { display: false }, y: { min: 0, max: 100, grid: { color: colors.grid }, ticks: { font: { size: 9 }, color: colors.text } } },
+    plugins: { legend: { display: false }, tooltip: { enabled: false } }
+  }
+});
+
+const ctxRadar = document.getElementById('radar-chart').getContext('2d');
+const radarChart = new Chart(ctxRadar, {
+  type: 'radar',
+  data: {
+    labels: ['PHONE', 'FACES', 'HEAD', 'GAZE', 'AUDIO'],
+    datasets: [{
+      data: [0, 0, 0, 0, 0],
+      backgroundColor: 'rgba(255, 0, 85, 0.25)',
+      borderColor: '#ff0055',
+      pointBackgroundColor: '#ff0055',
+      borderWidth: 1.5,
+      pointRadius: 2
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      r: {
+        angleLines: { color: colors.grid },
+        grid: { color: colors.grid },
+        pointLabels: { color: colors.primary, font: { size: 9, family: "'JetBrains Mono', monospace" } },
+        ticks: { display: false, min: 0, max: 100 }
+      }
+    },
+    plugins: { legend: { display: false }, tooltip: { enabled: false } }
+  }
+});
+
+function updateChartColors() {
+  colors = getThemeColors();
+  chart.data.datasets[0].borderColor = colors.primary;
+  chart.data.datasets[0].backgroundColor = colors.primaryBg;
+  chart.options.scales.y.grid.color = colors.grid;
+  chart.options.scales.y.ticks.color = colors.text;
+  chart.update();
+
+  radarChart.options.scales.r.angleLines.color = colors.grid;
+  radarChart.options.scales.r.grid.color = colors.grid;
+  radarChart.options.scales.r.pointLabels.color = colors.primary;
+  radarChart.update();
+}
+
+function setIndicator(id, active, label) {
+  const el = document.getElementById(id);
+  el.textContent = label;
+  if (active) el.classList.add('active'); else el.classList.remove('active');
+}
+
+async function fetchStatus() {
+  try {
+    const res = await fetch('/status');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const status = await res.json();
+
+    // ── FPS & Score ─────────────────────────────────────────────────────────
+    document.getElementById('fps-display').textContent =
+      (typeof status.fps === 'number' ? status.fps.toFixed(1) : '0.0') + ' FPS';
+    document.getElementById('score-number').textContent =
+      (typeof status.suspicion_score === 'number' ? status.suspicion_score.toFixed(1) : '0.0');
+
+    // ── Line Chart ──────────────────────────────────────────────────────────
+    chart.data.labels.push('');
+    chart.data.datasets[0].data.push(status.suspicion_score || 0);
+    if (chart.data.labels.length > 60) {
+      chart.data.labels.shift();
+      chart.data.datasets[0].data.shift();
+    }
+    chart.update('none');  // 'none' = skip animation for perf
+
+    // ── Radar Chart ─────────────────────────────────────────────────────────
+    radarChart.data.datasets[0].data = [
+      status.phone_detected ? 80 : 0,
+      (status.face_count || 0) > 1 ? 80 : 0,
+      status.head_direction !== 'forward' ? 80 : 0,
+      (status.gaze_direction || '').includes('off') ? 80 : 0,
+      (status.mouth_state === 'speaking' || status.mouth_state === 'open') ? 80 : 0,
+    ];
+    radarChart.update('none');
+
+    // ── Risk Badge & Overlay ────────────────────────────────────────────────
+    const score = status.suspicion_score || 0;
+    const rb      = document.getElementById('risk-badge');
+    const overlay = document.getElementById('video-overlay');
+    const banner  = document.getElementById('alert-banner');
+    rb.className      = 'risk-badge';
+    overlay.className = 'video-overlay-risk';
+    if (score > 75) {
+      rb.classList.add('high');   rb.textContent = 'HIGH_RISK';
+      overlay.classList.add('overlay-high');
+      banner.classList.remove('hidden');
+    } else if (score > 35) {
+      rb.classList.add('medium'); rb.textContent = 'ELEVATED';
+      overlay.classList.add('overlay-medium');
+      banner.classList.add('hidden');
+    } else {
+      rb.classList.add('low');    rb.textContent = 'NOMINAL';
+      overlay.classList.add('overlay-low');
+      banner.classList.add('hidden');
+    }
+
+    // ── Violation Counts ────────────────────────────────────────────────────
+    const v = status.violations || {};
+    document.getElementById('cnt-phone').textContent = v.phone_detected  || 0;
+    document.getElementById('cnt-face').textContent  = v.multiple_faces  || 0;
+    document.getElementById('cnt-head').textContent  = v.head_turned     || 0;
+    document.getElementById('cnt-gaze').textContent  = v.gaze_off_screen || 0;
+    document.getElementById('cnt-mouth').textContent = v.mouth_open      || 0;
+    document.getElementById('cnt-id').textContent    = v.identity_mismatch || 0;
+
+    // ── Sensor Indicators ───────────────────────────────────────────────────
+    const head  = (status.head_direction  || 'forward').toUpperCase();
+    const gaze  = (status.gaze_direction  || 'on-screen').toUpperCase();
+    const mouth = (status.mouth_state     || 'closed').toUpperCase();
+    setIndicator('ind-phone',    status.phone_detected,
+      'PHONE: ' + (status.phone_detected ? 'DETECTED' : 'CLR'));
+    setIndicator('ind-head',     head !== 'FORWARD',
+      'HEAD: '  + head);
+    setIndicator('ind-gaze',     gaze.includes('OFF'),
+      'GAZE: '  + gaze.replace('OFF-', ''));
+    setIndicator('ind-mouth',    mouth === 'SPEAKING',
+      'AUDIO: ' + mouth);
+    setIndicator('ind-hand',     status.hand_near_face,
+      'HAND: '  + (status.hand_near_face ? 'DETECTED' : 'CLR'));
+    setIndicator('ind-identity', status.identity_mismatch,
+      'IDENT: ' + (status.identity_mismatch ? 'ERR' : 'OK'));
+
+    // ── Enrollment Status ───────────────────────────────────────────────────
+    const enrolled = status.enrollment_complete || status.identity_enrolled;
+    const enStatus = document.getElementById('enroll-status');
+    const bioCard  = document.getElementById('biometric-card');
+    const imgEl    = document.getElementById('enrolled-photo');
+    if (enrolled) {
+      enStatus.style.display = 'none';
+      bioCard.classList.remove('hidden');
+      if (!imgEl._loaded) {
+        imgEl.src = '/static/enrolled_face.jpg?t=' + Date.now();
+        imgEl._loaded = true;
+      }
+    } else {
+      enStatus.textContent = '[ ENROLLING IDENTITY DATA... ]';
+      enStatus.style.display = 'block';
+      bioCard.classList.add('hidden');
+    }
+
+  } catch (err) {
+    document.getElementById('fps-display').textContent = '-- FPS';
+    console.warn('[STATUS] fetch error:', err.message);
+  }
+}
+
+async function fetchEvents() {
+  try {
+    const res = await fetch('/events');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const events = await res.json();
+    const timeline = document.getElementById('event-timeline');
+    if (timeline.children.length === events.length) return;
+    timeline.innerHTML = '';
+    events.slice().reverse().forEach(ev => {
+      const li = document.createElement('li');
+      li.className = 'timeline-item';
+      const evType  = ((ev.event_type || ev.type || 'unknown').replace(/_/g, ' ')).toUpperCase();
+      const evTime  = ev.time || ev.wall_time || '--';
+      const evScore = parseFloat(ev.score || 0).toFixed(1);
+      li.innerHTML = `<span class="ti-time">[${evTime}]</span><span class="ti-type">${evType}</span><span class="ti-score">${evScore}</span>`;
+      timeline.appendChild(li);
+    });
+  } catch(err) { console.warn('[EVENTS] fetch error:', err.message); }
+}
+
+async function resetSession() {
+  if (!confirm('Initialize System Reset? All session data will be purged.')) return;
+  try {
+    await fetch('/reset', { method: 'POST' });
+    sessionSeconds = 0;
+    chart.data.labels = []; chart.data.datasets[0].data = []; chart.update();
+    radarChart.data.datasets[0].data = [0,0,0,0,0]; radarChart.update();
+    document.getElementById('event-timeline').innerHTML = '';
+    document.getElementById('cnt-phone').textContent  = 0;
+    document.getElementById('cnt-face').textContent   = 0;
+    document.getElementById('cnt-head').textContent   = 0;
+    document.getElementById('cnt-gaze').textContent   = 0;
+    document.getElementById('cnt-mouth').textContent  = 0;
+    document.getElementById('cnt-id').textContent     = 0;
+  } catch(err) { console.warn(err); }
+}
+
+setInterval(fetchStatus, 500);
+setInterval(fetchEvents, 1000);
+</script>
+</body>
+</html>
