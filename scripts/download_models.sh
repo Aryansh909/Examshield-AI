@@ -38,3 +38,4 @@ fi
 
 echo "[ExamShield] MediaPipe models ready."
 echo "  Next: python app.py"
+
